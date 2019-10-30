@@ -6,6 +6,7 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "date.h"
 
 struct {
   struct spinlock lock;
@@ -111,6 +112,11 @@ found:
   p->context = (struct context*)sp;
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
+
+  // Set creation time of process
+  struct rtcdate initTime;
+  cmostime(&initTime);
+  p->initSecs = initTime.second + (initTime.minute)*60 + (initTime.hour)*3600;
 
   return p;
 }
@@ -531,4 +537,32 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+void
+topps(void)
+{
+  static char *states[] = {
+  [UNUSED]    "unused",
+  [EMBRYO]    "embryo",
+  [SLEEPING]  "sleep",
+  [RUNNABLE]  "runble",
+  [RUNNING]   "run",
+  [ZOMBIE]    "zombie"
+  };
+
+  struct proc *p;
+  struct rtcdate currTime;
+
+  cmostime(&currTime);
+  int curr_secs = (currTime).second + ((currTime).minute)*60 + ((currTime).hour)*3600;
+
+  acquire(&ptable.lock);
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if (p->pid != 0) {
+      cprintf("PID:%d, NAME:%s, PPID:%d, State:%s, VMSize:%d, ElapsedTime:%d \n", 
+              p->pid, p->name, p->parent->pid, states[p->state], p->sz, (curr_secs - p->initSecs));
+    }
+  }
+  release(&ptable.lock);
 }
