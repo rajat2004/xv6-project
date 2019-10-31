@@ -114,9 +114,7 @@ found:
   p->context->eip = (uint)forkret;
 
   // Set creation time of process
-  struct rtcdate initTime;
-  cmostime(&initTime);
-  p->initSecs = initTime.second + (initTime.minute)*60 + (initTime.hour)*3600;
+  p->initSecs = currTimeInSecs();
 
   return p;
 }
@@ -348,6 +346,7 @@ scheduler(void)
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
+      p->execStartSecs = currTimeInSecs();
 
       swtch(&(c->scheduler), p->context);
       switchkvm();
@@ -383,6 +382,11 @@ sched(void)
   if(readeflags()&FL_IF)
     panic("sched interruptible");
   intena = mycpu()->intena;
+
+  // Update total execution time
+  int stopTime = currTimeInSecs();
+  p->totExecTime += stopTime - p->execStartSecs;
+
   swtch(&p->context, mycpu()->scheduler);
   mycpu()->intena = intena;
 }
@@ -552,16 +556,13 @@ topps(void)
   };
 
   struct proc *p;
-  struct rtcdate currTime;
-
-  cmostime(&currTime);
-  int curr_secs = (currTime).second + ((currTime).minute)*60 + ((currTime).hour)*3600;
+  int curr_secs = currTimeInSecs();
 
   acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if (p->pid != 0) {
-      cprintf("PID:%d, NAME:%s, PPID:%d, State:%s, VMSize:%d, ElapsedTime:%d \n", 
-              p->pid, p->name, p->parent->pid, states[p->state], p->sz, (curr_secs - p->initSecs));
+      cprintf("PID: %d,  NAME: %s,  PPID: %d,  State: %s,  VMSize: %d,  ElapsedTime: %d,  TotalExecTime: %d \n", 
+              p->pid, p->name, p->parent->pid, states[p->state], p->sz, (curr_secs - p->initSecs), p->totExecTime);
     }
   }
   release(&ptable.lock);

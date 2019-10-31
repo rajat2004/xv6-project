@@ -81,6 +81,8 @@ void            lapicinit(void);
 void            lapicstartap(uchar, uint);
 void            microdelay(int);
 
+int             currTimeInSecs(void);
+
 // log.c
 void            initlog(int dev);
 void            log_write(struct buf*);

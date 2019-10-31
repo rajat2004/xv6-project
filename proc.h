@@ -51,6 +51,8 @@ struct proc {
   char name[16];               // Process name (debugging)
 
   int initSecs;                // Creation time in Seconds of process
+  int execStartSecs;            // Time in seconds when process was last scheduled and started executing
+  int totExecTime;             // Total time process has been executing
 };
 
 // Process memory is laid out contiguously, low addresses first:

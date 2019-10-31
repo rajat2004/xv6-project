@@ -227,3 +227,11 @@ cmostime(struct rtcdate *r)
   *r = t1;
   r->year += 2000;
 }
+
+int 
+currTimeInSecs(void)
+{
+  struct rtcdate currTime;
+  cmostime(&currTime);
+  return (currTime).second + ((currTime).minute)*60 + ((currTime).hour)*3600;
+}
