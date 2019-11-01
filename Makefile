@@ -182,8 +182,8 @@ UPROGS=\
 	_wc\
 	_zombie\
 	_topps\
-	_always_run\
-	_emulate_io\
+	_hog\
+	_io\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)
@@ -254,7 +254,7 @@ EXTRA=\
 	mkfs.c ulib.c user.h cat.c echo.c forktest.c grep.c kill.c\
 	ln.c ls.c mkdir.c rm.c stressfs.c usertests.c wc.c zombie.c\
 	printf.c umalloc.c\
-	topps.c always_run.c emulate_io.c\
+	topps.c hog.c io.c\
 	README dot-bochsrc *.pl toc.* runoff runoff1 runoff.list\
 	.gdbinit.tmpl gdbutil\
 

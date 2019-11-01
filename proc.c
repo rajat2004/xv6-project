@@ -549,20 +549,21 @@ topps(void)
   static char *states[] = {
   [UNUSED]    "unused",
   [EMBRYO]    "embryo",
-  [SLEEPING]  "sleep",
+  [SLEEPING]  "sleep ",
   [RUNNABLE]  "runble",
-  [RUNNING]   "run",
+  [RUNNING]   "run   ",
   [ZOMBIE]    "zombie"
   };
 
   struct proc *p;
   int curr_secs = currTimeInSecs();
 
+  cprintf("PID \t Name \t State \t Mem \t Elapsed  ExecTime \t PPID\n");
   acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if (p->pid != 0) {
-      cprintf("PID: %d,  NAME: %s,  PPID: %d,  State: %s,  VMSize: %d,  ElapsedTime: %d,  TotalExecTime: %d \n", 
-              p->pid, p->name, p->parent->pid, states[p->state], p->sz, (curr_secs - p->initSecs), p->totExecTime);
+      cprintf("%d \t %s \t %s\t %d \t %d \t\t %d \t %d\n", 
+              p->pid, p->name, states[p->state], p->sz, (curr_secs - p->initSecs), p->totExecTime, p->parent->pid);
     }
   }
   release(&ptable.lock);
