@@ -14,6 +14,8 @@ extern uint vectors[];  // in vectors.S: array of 256 entry pointers
 struct spinlock tickslock;
 uint ticks;
 
+extern int sys_uptime(void);
+
 void
 tvinit(void)
 {
@@ -37,12 +39,18 @@ void
 trap(struct trapframe *tf)
 {
   if(tf->trapno == T_SYSCALL){
+    myproc()->userSpaceTot += sys_uptime() - myproc()->userSpaceInit;
+    myproc()->kernelSpaceInit = sys_uptime();
+
     if(myproc()->killed)
       exit();
     myproc()->tf = tf;
     syscall();
     if(myproc()->killed)
       exit();
+
+    myproc()->kernelSpaceTot += sys_uptime() - myproc()->kernelSpaceInit;
+    myproc()->userSpaceInit = sys_uptime();
     return;
   }
 

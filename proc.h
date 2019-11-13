@@ -53,6 +53,11 @@ struct proc {
   int initSecs;                // Creation time in Seconds of process
   int execStartSecs;            // Time in seconds when process was last scheduled and started executing
   int totExecTime;             // Total time process has been executing
+
+  int kernelSpaceInit;
+  int kernelSpaceTot;
+  int userSpaceInit;
+  int userSpaceTot;
 };
 
 // Process memory is laid out contiguously, low addresses first:

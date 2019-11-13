@@ -19,6 +19,8 @@ int nextpid = 1;
 extern void forkret(void);
 extern void trapret(void);
 
+extern int sys_uptime(void);
+
 static void wakeup1(void *chan);
 
 void
@@ -114,7 +116,11 @@ found:
   p->context->eip = (uint)forkret;
 
   // Set creation time of process
-  p->initSecs = currTimeInSecs();
+  p->initSecs = sys_uptime();
+  p->totExecTime = 0;
+  p->kernelSpaceTot = 0;
+  p->userSpaceTot = 0;
+  p->userSpaceInit = sys_uptime();
 
   return p;
 }
@@ -346,7 +352,7 @@ scheduler(void)
       c->proc = p;
       switchuvm(p);
       p->state = RUNNING;
-      p->execStartSecs = currTimeInSecs();
+      p->execStartSecs = ticks;
 
       swtch(&(c->scheduler), p->context);
       switchkvm();
@@ -384,7 +390,7 @@ sched(void)
   intena = mycpu()->intena;
 
   // Update total execution time
-  int stopTime = currTimeInSecs();
+  int stopTime = ticks;
   p->totExecTime += stopTime - p->execStartSecs;
 
   swtch(&p->context, mycpu()->scheduler);
@@ -449,6 +455,8 @@ sleep(void *chan, struct spinlock *lk)
   p->chan = chan;
   p->state = SLEEPING;
 
+  myproc()->kernelSpaceTot += ticks - myproc()->kernelSpaceInit;
+
   sched();
 
   // Tidy up.
@@ -459,6 +467,8 @@ sleep(void *chan, struct spinlock *lk)
     release(&ptable.lock);
     acquire(lk);
   }
+
+  myproc()->kernelSpaceInit = ticks;
 }
 
 //PAGEBREAK!
@@ -556,14 +566,14 @@ topps(void)
   };
 
   struct proc *p;
-  int curr_secs = currTimeInSecs();
+  int curr_secs = sys_uptime();
 
-  cprintf("PID \t Name \t State \t Mem \t Elapsed  ExecTime \t PPID\n");
+  cprintf("PID \t Name \t State \t Mem \t Elapsed  ExecTime  KernelTime UserTime  PPID\n");
   acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-    if (p->pid != 0) {
-      cprintf("%d \t %s \t %s\t %d \t %d \t\t %d \t %d\n", 
-              p->pid, p->name, states[p->state], p->sz, (curr_secs - p->initSecs), p->totExecTime, p->parent->pid);
+    if (p->state != UNUSED) {
+      cprintf("%d \t %s \t %s\t %d \t %d \t\t %d \t %d \t %d \t %d\n", 
+              p->pid, p->name, states[p->state], p->sz, (curr_secs - p->initSecs), p->totExecTime, p->kernelSpaceTot, p->userSpaceTot, p->parent->pid);
     }
   }
   release(&ptable.lock);
