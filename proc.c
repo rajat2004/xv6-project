@@ -120,7 +120,7 @@ found:
   p->totExecTime = 0;
   p->kernelSpaceTot = 0;
   p->userSpaceTot = 0;
-  p->userSpaceInit = sys_uptime();
+  // p->userSpaceInit = sys_uptime();
 
   return p;
 }
@@ -225,6 +225,7 @@ fork(void)
   acquire(&ptable.lock);
 
   np->state = RUNNABLE;
+  np->userSpaceInit = sys_uptime();
 
   release(&ptable.lock);
 
@@ -572,8 +573,20 @@ topps(void)
   acquire(&ptable.lock);
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
     if (p->state != UNUSED) {
+      int userSpaceAdd = 0, execTimeAdd=0, kernelSpaceAdd=0;
+
+      if (p->state==RUNNING) {
+        execTimeAdd = curr_secs - p->execStartSecs;
+
+        if ((p->tf->cs & 3) == DPL_USER)
+          userSpaceAdd = curr_secs - p->userSpaceInit;
+        else
+          kernelSpaceAdd = curr_secs - p->kernelSpaceInit;
+      }
+
       cprintf("%d \t %s \t %s\t %d \t %d \t\t %d \t %d \t %d \t %d\n", 
-              p->pid, p->name, states[p->state], p->sz, (curr_secs - p->initSecs), p->totExecTime, p->kernelSpaceTot, p->userSpaceTot, p->parent->pid);
+              p->pid, p->name, states[p->state], p->sz, (curr_secs - p->initSecs), 
+              (p->totExecTime + execTimeAdd), (p->kernelSpaceTot + kernelSpaceAdd), (p->userSpaceTot + userSpaceAdd), p->parent->pid);
     }
   }
   release(&ptable.lock);

@@ -5,7 +5,7 @@
 int main() {
     while(1) {
         uint i=0;
-        while (i < 400000) { i++; }
+        while (i < 200000) { i++; }
         sleep(1);
     }
     exit();
