@@ -456,7 +456,8 @@ sleep(void *chan, struct spinlock *lk)
   p->chan = chan;
   p->state = SLEEPING;
 
-  myproc()->kernelSpaceTot += ticks - myproc()->kernelSpaceInit;
+  if (p->pid < 3)
+    p->kernelSpaceTot += ticks - p->kernelSpaceInit;
 
   sched();
 
@@ -469,7 +470,8 @@ sleep(void *chan, struct spinlock *lk)
     acquire(lk);
   }
 
-  myproc()->kernelSpaceInit = ticks;
+  if (p->pid < 3)
+    p->kernelSpaceInit = ticks;
 }
 
 //PAGEBREAK!

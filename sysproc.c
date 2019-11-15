@@ -66,6 +66,9 @@ sys_sleep(void)
     return -1;
   acquire(&tickslock);
   ticks0 = ticks;
+
+  myproc()->kernelSpaceTot += ticks - myproc()->kernelSpaceInit;
+
   while(ticks - ticks0 < n){
     if(myproc()->killed){
       release(&tickslock);
@@ -73,6 +76,9 @@ sys_sleep(void)
     }
     sleep(&ticks, &tickslock);
   }
+
+  myproc()->kernelSpaceInit = ticks;
+
   release(&tickslock);
   return 0;
 }
