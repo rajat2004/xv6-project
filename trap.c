@@ -39,8 +39,13 @@ void
 trap(struct trapframe *tf)
 {
   if(tf->trapno == T_SYSCALL){
-    myproc()->userSpaceTot += sys_uptime() - myproc()->userSpaceInit;
-    myproc()->kernelSpaceInit = sys_uptime();
+    int xticks = sys_uptime();
+    int userDiff = xticks - myproc()->userSpaceInit;
+
+    myproc()->userSpaceTot += userDiff;
+    myproc()->totExecTime += userDiff;
+
+    myproc()->kernelSpaceInit = xticks;
 
     if(myproc()->killed)
       exit();
@@ -49,8 +54,13 @@ trap(struct trapframe *tf)
     if(myproc()->killed)
       exit();
 
-    myproc()->kernelSpaceTot += sys_uptime() - myproc()->kernelSpaceInit;
-    myproc()->userSpaceInit = sys_uptime();
+    xticks = sys_uptime();
+    int kernelDiff = xticks - myproc()->kernelSpaceInit;
+    
+    myproc()->kernelSpaceTot += kernelDiff;
+    myproc()->totExecTime += kernelDiff;
+
+    myproc()->userSpaceInit = xticks;
     return;
   }
 

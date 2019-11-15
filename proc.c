@@ -351,6 +351,9 @@ scheduler(void)
       // to release ptable.lock and then reacquire it
       // before jumping back to us.
       c->proc = p;
+      // int xticks = ticks;
+      // p->execStartSecs = xticks;
+
       switchuvm(p);
       p->state = RUNNING;
       p->execStartSecs = ticks;
@@ -390,9 +393,10 @@ sched(void)
     panic("sched interruptible");
   intena = mycpu()->intena;
 
+  // cprintf("%s- %d- %d\n", p->name, p->state, p->tf->cs&3);
   // Update total execution time
-  int stopTime = ticks;
-  p->totExecTime += stopTime - p->execStartSecs;
+  // int stopTime = ticks;
+  // p->totExecTime += stopTime - p->execStartSecs;
 
   swtch(&p->context, mycpu()->scheduler);
   mycpu()->intena = intena;
@@ -578,17 +582,22 @@ topps(void)
       int userSpaceAdd = 0, execTimeAdd=0, kernelSpaceAdd=0;
 
       if (p->state==RUNNING) {
-        execTimeAdd = curr_secs - p->execStartSecs;
+        // execTimeAdd = curr_secs - p->execStartSecs;
 
-        if ((p->tf->cs & 3) == DPL_USER)
+        if ((p->tf->cs & 3) == DPL_USER) {
           userSpaceAdd = curr_secs - p->userSpaceInit;
-        else
+          execTimeAdd = userSpaceAdd;
+        }
+        else {
           kernelSpaceAdd = curr_secs - p->kernelSpaceInit;
+          execTimeAdd = kernelSpaceAdd;
+        }
       }
 
       cprintf("%d \t %s \t %s\t %d \t %d \t\t %d \t %d \t %d \t %d\n", 
               p->pid, p->name, states[p->state], p->sz, (curr_secs - p->initSecs), 
-              (p->totExecTime + execTimeAdd), (p->kernelSpaceTot + kernelSpaceAdd), (p->userSpaceTot + userSpaceAdd), p->parent->pid);
+              (p->totExecTime + execTimeAdd), (p->kernelSpaceTot + kernelSpaceAdd), 
+              (p->userSpaceTot + userSpaceAdd), p->parent->pid);
     }
   }
   release(&ptable.lock);
