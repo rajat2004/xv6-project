@@ -50,14 +50,14 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
 
-  int initSecs;                // Creation time in Seconds of process
-  int execStartSecs;            // Time in seconds when process was last scheduled and started executing
+  int initSecs;                // Creation time of process
+  int execStartSecs;           // Time when process was last scheduled and started executing
   int totExecTime;             // Total time process has been executing
 
-  int kernelSpaceInit;
-  int kernelSpaceTot;
-  int userSpaceInit;
-  int userSpaceTot;
+  int kernelSpaceInit;        // Last kernel mode init time
+  int kernelSpaceTot;         // Total execution time in kernel mode
+  int userSpaceInit;          // Last user mode init time
+  int userSpaceTot;           // Total execution time in user mode
 };
 
 // Process memory is laid out contiguously, low addresses first:
