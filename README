@@ -1,3 +1,33 @@
+### Add _topps_ command to xv6
+
+The _topps_ command prints the following information for all current processes:
+1. the pid of the process,
+2. the name of the process,
+3. the pid of the parent process,
+4. the current process state,
+5. the size of the virtual memory, and
+6. the time elapsed since the creation of the process.
+7. the total time executed by each process
+8. classify the total time executed to one of two classes: kernel space and userspace
+
+There are also 3 exmaple userspace programs to illustrate how different processes take different amounts of time in user and kernel spaces-
+1. hog.c (Mostly in userspace)
+2. io.c (In both kernel and userspace)
+3. forks.c (Mostly in kernelspace)
+
+Run them in background (eg. `hog &`) and then run `topps`.
+
+```
+$ topps
+PID   Name   State   Mem     Elapsed  ExecTime  KernelTime UserTime  PPID
+1    init    sleep   12288   328         25      36         15   49080324
+2    sh      sleep   16384   277         10      16         0        1
+3    topps   run     12288   9          7        7          0        2
+
+```
+
+
+
 xv6 is a re-implementation of Dennis Ritchie's and Ken Thompson's Unix
 Version 6 (v6).  xv6 loosely follows the structure and style of v6,
 but is implemented for a modern x86-based multiprocessor using ANSI C.
